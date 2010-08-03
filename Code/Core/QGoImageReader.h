@@ -47,7 +47,7 @@
 #include <string>
 
 #include "itkImageIOBase.h"
-#include "itkMegaCaptureReader.h"
+//#include "itkMegaCaptureReader.h"
 #include "QGoImage.h"
 
 class vtkLSMReader;
@@ -68,14 +68,15 @@ public:
   
   enum ReaderType
     {
-    MEGACAPTURE = 22,
+//    MEGACAPTURE = 22,
     VTKLSM,
     ITKIO,
     UNSUPPORTED
     };
-  
-  void SetInputFileName( const std::string& iName );
-  void SetInputFileName( const QString& iName );
+ 
+  void SetFileName( const char* iName ); 
+  void SetFileName( const std::string& iName );
+  void SetFileName( const QString& iName );
   
   void SetTimePoint( const unsigned int& iTimePoint );
   
@@ -89,7 +90,7 @@ protected:
   std::string ExtractFileExtension();
   
   /** \brief Check if the input file is a MegaCapture. */
-  bool IsReadableByMegaCaptureReader();
+//  bool IsReadableByMegaCaptureReader();
   
   /** \brief Check if the input file can be read by one 
   vtkLSMReader, i.e. if the extension is .lsm and check that
@@ -103,7 +104,7 @@ protected:
   void Init();
   
   std::vector< vtkLSMReader* >              m_LSMReaders;
-  itk::MegaCaptureReader::Pointer           m_MegaCaptureReader;
+//  itk::MegaCaptureReader::Pointer           m_MegaCaptureReader;
   itk::ImageIOBase::Pointer                 m_ITKReader;
   QGoImagePointer                           m_Output;
   ReaderType                                m_ReaderType;

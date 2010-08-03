@@ -65,7 +65,7 @@ QGoImageReader( QObject* iParent ) :
   m_Modified( false )
 {
   m_LSMReaders[0] = vtkLSMReader::New();
-  m_MegaCaptureReader = itk::MegaCaptureReader::New();
+//  m_MegaCaptureReader = itk::MegaCaptureReader::New();
   m_Output = QGoImage::New();
 }
 //-------------------------------------------------------------------------
@@ -85,7 +85,7 @@ QGoImageReader::
 //-------------------------------------------------------------------------
 void 
 QGoImageReader::
-SetInputFileName( const std::string& iName )
+SetFileName( const char* iName )
 {
   m_FileName = iName;
 }
@@ -94,7 +94,16 @@ SetInputFileName( const std::string& iName )
 //-------------------------------------------------------------------------
 void 
 QGoImageReader::
-SetInputFileName( const QString& iName )
+SetFileName( const std::string& iName )
+{
+  m_FileName = iName;
+}
+//-------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------
+void 
+QGoImageReader::
+SetFileName( const QString& iName )
 {
   m_FileName = iName.toStdString();
 }
@@ -135,12 +144,12 @@ SetTimePoint( const unsigned int& iTimePoint )
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-bool 
-QGoImageReader::
-IsReadableByMegaCaptureReader()
-{
-  return false;
-}
+//bool 
+//QGoImageReader::
+//IsReadableByMegaCaptureReader()
+//{
+//  return false;
+//}
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
@@ -211,17 +220,17 @@ run()
     if( m_Modified )
       {
       // if megacapture
-      if( m_ReaderType == MEGACAPTURE )
-        {
-        m_MegaCaptureReader->SetTimePoint(m_UpdateTimePoint);
-        m_MegaCaptureReader->Update();
-          
-        for (unsigned int i = m_MinChannel; i <= m_MaxChannel; i++)
-          {
-          m_Output->SetNthChannelVTKImage( i, 
-            m_MegaCaptureReader->GetOutput(i) );
-          }
-        }
+//       if( m_ReaderType == MEGACAPTURE )
+//         {
+//         m_MegaCaptureReader->SetTimePoint(m_UpdateTimePoint);
+//         m_MegaCaptureReader->Update();
+//           
+//         for (unsigned int i = m_MinChannel; i <= m_MaxChannel; i++)
+//           {
+//           m_Output->SetNthChannelVTKImage( i, 
+//             m_MegaCaptureReader->GetOutput(i) );
+//           }
+//         }
       // if vtkLSM
       if( m_ReaderType == VTKLSM )
         {
@@ -253,15 +262,15 @@ Init()
   // Is it a megacapture file?
   if( extension.compare( ".meg" ) == 0 )
     {
-    if( IsReadableByMegaCaptureReader() )
-      {
-      // empty LSM Readers, release memory when possible!
-      m_LSMReaders[0]->Delete();
-      m_LSMReaders.pop_back();
-      
-      m_ReaderType = MEGACAPTURE;
-      readable = true;
-      }
+//     if( IsReadableByMegaCaptureReader() )
+//       {
+//       // empty LSM Readers, release memory when possible!
+//       m_LSMReaders[0]->Delete();
+//       m_LSMReaders.pop_back();
+//       
+//       m_ReaderType = MEGACAPTURE;
+//       readable = true;
+//       }
     }
     
   // -----------------------------------
