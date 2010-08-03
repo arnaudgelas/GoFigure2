@@ -66,19 +66,12 @@ public:
   explicit QGoImageReader( QObject* iParent = NULL );
   ~QGoImageReader();
   
-  enum ImageType
-    {
-    SCALAR,
-    VECTORFIELD,
-    TENSORFIELD,
-    MULTICHANNEL
-    };
-    
-  enum ReaderFileType
+  enum ReaderType
     {
     MEGACAPTURE = 22,
     VTKLSM,
-    ITKIO
+    ITKIO,
+    UNSUPPORTED
     };
   
   void SetInputFileName( const std::string& iName );
@@ -113,9 +106,9 @@ protected:
   itk::MegaCaptureReader::Pointer           m_MegaCaptureReader;
   itk::ImageIOBase::Pointer                 m_ITKReader;
   QGoImagePointer                           m_Output;
+  ReaderType                                m_ReaderType;
   
   std::string m_FileName;
-  ReaderFileType m_FileType;
 
   unsigned int m_MinTimePoint;
   unsigned int m_MaxTimePoint;

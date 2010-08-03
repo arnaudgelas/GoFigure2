@@ -1,0 +1,4 @@
+ADD_EXECUTABLE( QGoImageTest QGoImageTest.cxx )
+TARGET_LINK_LIBRARIES( QGoImageTest QGoCore )
+
+ADD_TEST( QGoImageTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QGoImageTest )

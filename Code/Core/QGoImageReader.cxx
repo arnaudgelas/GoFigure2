@@ -55,6 +55,7 @@ QGoImageReader( QObject* iParent ) :
   QThread( iParent ), 
   m_LSMReaders( 1, NULL ),
 //  ITKReader( NULL ),
+  m_ReaderType( UNSUPPORTED ),
   m_MinTimePoint( 0 ),
   m_MaxTimePoint( 0 ),
   m_UpdateTimePoint( 0 ),
@@ -210,9 +211,9 @@ run()
     if( m_Modified )
       {
       // if megacapture
-/*      if( m_FileType == MEGACAPTURE )
+      if( m_ReaderType == MEGACAPTURE )
         {
-        m_MegaCaptureReader->SetTimePoint(m_TimePoint);
+        m_MegaCaptureReader->SetTimePoint(m_UpdateTimePoint);
         m_MegaCaptureReader->Update();
           
         for (unsigned int i = m_MinChannel; i <= m_MaxChannel; i++)
@@ -222,17 +223,16 @@ run()
           }
         }
       // if vtkLSM
-      if( m_FileType == VTKLSM )
+      if( m_ReaderType == VTKLSM )
         {
-        m_TimePoint = iTimePoint;
-
+        vtkLSMReader* t_reader;
         for( unsigned int i = m_MinChannel; i <= m_MaxChannel; i++ )
           {
-          m_LSMReader[i]->SetUpdateTimePoint(m_TimePoint);
-          m_Output->SetNthChannelVTKImage( i, 
-            m_LSMReader[i]->GetOutput() );
+          t_reader = m_LSMReaders[i];
+          t_reader->SetUpdateTimePoint(m_UpdateTimePoint);
+          m_Output->SetNthChannelVTKImage( i, t_reader->GetOutput() );
           }
-        }*/
+        }
       m_Modified = false;
       }
     }
@@ -259,15 +259,7 @@ Init()
       m_LSMReaders[0]->Delete();
       m_LSMReaders.pop_back();
       
-//       if( m_MaxChannel > 1 )
-//         {
-//         m_ImageType = MULTICHANNEL;
-//         }
-//       else
-//         {
-//         m_ImageType = SCALAR;
-//         }      
-      m_FileType = MEGACAPTURE;
+      m_ReaderType = MEGACAPTURE;
       readable = true;
       }
     }
@@ -293,16 +285,7 @@ Init()
         m_LSMReaders.back()->SetUpdateChannel( i );
         }
         
-//       if( m_MaxChannel > 1 )
-//         {
-//         m_ImageType = MULTICHANNEL;
-//         }
-//       else
-//         {
-//         m_ImageType = SCALAR;
-//         }
-        
-      m_FileType = VTKLSM;
+      m_ReaderType = VTKLSM;
       readable = true;
       }
     }

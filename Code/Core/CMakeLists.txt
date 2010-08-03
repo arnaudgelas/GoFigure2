@@ -11,4 +11,4 @@ SET( CORE_HDRS
 QT4_WRAP_CPP( ${CORE_MOC} ${CORE_HDRS} )
 
 ADD_LIBRARY( QGoCore ${CORE_SRC} ${CORE_MOC} )
- 
+TARGET_LINK_LIBRARIES( QGoCore ITKCommon vtkCommon vtkImaging ) 
