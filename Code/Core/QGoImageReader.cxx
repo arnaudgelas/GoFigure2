@@ -54,7 +54,7 @@ QGoImageReader::
 QGoImageReader( QObject* iParent ) :
   QThread( iParent ),
   m_LSMReaders( 1, NULL ),
-//  ITKReader( NULL ),
+  m_ITKReader( NULL ),
   m_ReaderType( UNSUPPORTED ),
   m_MinTimePoint( 0 ),
   m_MaxTimePoint( 0 ),
@@ -187,7 +187,7 @@ IsReadableByITKIO()
   else
     {
     m_ITKReader->SetFileName( m_FileName );
-//    m_ITKReader->ReadInformation();
+    m_ITKReader->ReadImageInformation();
     return true;
     }
 }
@@ -215,7 +215,6 @@ run()
   if( !m_Initialized )
     {
     Init();
-    FillOutputFromLSMReaders();
     m_Initialized = true;
     }
   else
@@ -305,6 +304,7 @@ Init()
       m_Output->SetNumberOfChannels( m_MaxChannel );
       m_ReaderType = VTKLSM;
       readable = true;
+      FillOutputFromLSMReaders();
       }
     }
 
