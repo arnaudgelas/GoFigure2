@@ -54,7 +54,7 @@ class vtkLSMReader;
 class QGoImage;
 class QString;
 
-/** 
+/**
 \class QGoImageReader
 \brief Image Reader for GoFigure2
 */
@@ -62,10 +62,10 @@ class QGoImageReader : public QThread
 {
 public:
   typedef QGoImage::Pointer QGoImagePointer;
-  
+
   explicit QGoImageReader( QObject* iParent = NULL );
   ~QGoImageReader();
-  
+
   enum ReaderType
     {
 //    MEGACAPTURE = 22,
@@ -73,42 +73,43 @@ public:
     ITKIO,
     UNSUPPORTED
     };
- 
-  void SetFileName( const char* iName ); 
+
+  void SetFileName( const char* iName );
   void SetFileName( const std::string& iName );
   void SetFileName( const QString& iName );
-  
+
   void SetTimePoint( const unsigned int& iTimePoint );
-  
+
   void Update();
-  QGoImagePointer GetOutput(); 
-  
-  
+  QGoImagePointer GetOutput();
+
+
 protected:
   void run();
-  
+
   std::string ExtractFileExtension();
-  
+
   /** \brief Check if the input file is a MegaCapture. */
 //  bool IsReadableByMegaCaptureReader();
-  
-  /** \brief Check if the input file can be read by one 
+
+  /** \brief Check if the input file can be read by one
   vtkLSMReader, i.e. if the extension is .lsm and check that
   there is no LZW Compression. */
   bool IsReadableByVTKLSMReader();
-  
-  
+  void FillOutputFromLSMReaders();
+
+
   bool IsReadableByITKIO();
   bool IsReadableByIOPlugin();
-  
+
   void Init();
-  
+
   std::vector< vtkLSMReader* >              m_LSMReaders;
 //  itk::MegaCaptureReader::Pointer           m_MegaCaptureReader;
   itk::ImageIOBase::Pointer                 m_ITKReader;
   QGoImagePointer                           m_Output;
   ReaderType                                m_ReaderType;
-  
+
   std::string m_FileName;
 
   unsigned int m_MinTimePoint;
@@ -120,7 +121,7 @@ protected:
 
   bool m_Initialized;
   bool m_Modified;
-  
+
 private:
   Q_DISABLE_COPY( QGoImageReader );
 };

@@ -157,17 +157,19 @@ bool
 QGoImageReader::
 IsReadableByVTKLSMReader()
 {
-  m_LSMReaders[0]->SetFileName( m_FileName.c_str() );
-
+  vtkLSMReader* reader = m_LSMReaders[0];
+  reader->SetFileName( m_FileName.c_str() );
+  reader->SetUpdateTimePoint(0);
+  reader->SetUpdateChannel(0);
 //   try
 //     {
-    m_LSMReaders[0]->Update();
+    reader->Update();
 //     }
   // here catch exception!
   //catch( )
 
-  return( m_LSMReaders[0]->IsValidLSMFile() &&
-        !m_LSMReaders[0]->IsCompressed() );
+  return( reader->IsValidLSMFile() &&
+        !reader->IsCompressed() );
 }
 //-------------------------------------------------------------------------
 
@@ -197,6 +199,11 @@ QGoImageReader::
 Update()
 {
   this->start();
+  while( this->isRunning() )
+  {
+    qApp->processEvents();
+    this->wait(10);
+  }
 }
 //-------------------------------------------------------------------------
 
@@ -208,6 +215,7 @@ run()
   if( !m_Initialized )
     {
     Init();
+    FillOutputFromLSMReaders();
     m_Initialized = true;
     }
   else
@@ -229,20 +237,26 @@ run()
       // if vtkLSM
       if( m_ReaderType == VTKLSM )
         {
-        vtkLSMReader* t_reader;
-        for( unsigned int i = m_MinChannel; i <= m_MaxChannel; i++ )
-          {
-          t_reader = m_LSMReaders[i];
-          t_reader->SetUpdateTimePoint(m_UpdateTimePoint);
-          m_Output->SetNthChannelVTKImage( i, t_reader->GetOutput() );
-          }
+        FillOutputFromLSMReaders();
         }
       m_Modified = false;
       }
     }
-  this->exec();
 }
 //-------------------------------------------------------------------------
+
+void
+QGoImageReader::
+FillOutputFromLSMReaders()
+{
+  vtkLSMReader* t_reader;
+  for( unsigned int i = m_MinChannel; i < m_MaxChannel; ++i )
+    {
+    t_reader = m_LSMReaders[i];
+    t_reader->SetUpdateTimePoint(m_UpdateTimePoint);
+    m_Output->SetNthChannelVTKImage( i, t_reader->GetOutput() );
+    }
+}
 
 
 //-------------------------------------------------------------------------
@@ -280,7 +294,7 @@ Init()
       m_MinTimePoint = 0;
       m_MaxTimePoint = m_LSMReaders[0]->GetNumberOfTimePoints();
 
-      for( unsigned int i = m_MinChannel;
+      for( unsigned int i = 1;
         i < m_MaxChannel;
         i++ )
         {
@@ -288,7 +302,7 @@ Init()
         m_LSMReaders.back()->SetFileName( m_FileName.c_str() );
         m_LSMReaders.back()->SetUpdateChannel( i );
         }
-
+      m_Output->SetNumberOfChannels( m_MaxChannel );
       m_ReaderType = VTKLSM;
       readable = true;
       }
