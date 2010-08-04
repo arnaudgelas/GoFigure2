@@ -51,8 +51,8 @@
 
 //-------------------------------------------------------------------------
 QGoImageReader::
-QGoImageReader( QObject* iParent ) : 
-  QThread( iParent ), 
+QGoImageReader( QObject* iParent ) :
+  QThread( iParent ),
   m_LSMReaders( 1, NULL ),
 //  ITKReader( NULL ),
   m_ReaderType( UNSUPPORTED ),
@@ -83,7 +83,7 @@ QGoImageReader::
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-void 
+void
 QGoImageReader::
 SetFileName( const char* iName )
 {
@@ -92,7 +92,7 @@ SetFileName( const char* iName )
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-void 
+void
 QGoImageReader::
 SetFileName( const std::string& iName )
 {
@@ -101,7 +101,7 @@ SetFileName( const std::string& iName )
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-void 
+void
 QGoImageReader::
 SetFileName( const QString& iName )
 {
@@ -131,7 +131,7 @@ ExtractFileExtension()
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-void 
+void
 QGoImageReader::
 SetTimePoint( const unsigned int& iTimePoint )
 {
@@ -144,7 +144,7 @@ SetTimePoint( const unsigned int& iTimePoint )
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-//bool 
+//bool
 //QGoImageReader::
 //IsReadableByMegaCaptureReader()
 //{
@@ -153,19 +153,19 @@ SetTimePoint( const unsigned int& iTimePoint )
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-bool 
+bool
 QGoImageReader::
 IsReadableByVTKLSMReader()
 {
   m_LSMReaders[0]->SetFileName( m_FileName.c_str() );
-  
+
 //   try
 //     {
     m_LSMReaders[0]->Update();
 //     }
   // here catch exception!
   //catch( )
-    
+
   return( m_LSMReaders[0]->IsValidLSMFile() &&
         !m_LSMReaders[0]->IsCompressed() );
 }
@@ -176,7 +176,7 @@ bool
 QGoImageReader::
 IsReadableByITKIO()
 {
-  m_ITKReader = itk::ImageIOFactory::CreateImageIO( m_FileName.c_str(), 
+  m_ITKReader = itk::ImageIOFactory::CreateImageIO( m_FileName.c_str(),
     itk::ImageIOFactory::ReadMode);
   if( m_ITKReader.IsNull() )
     {
@@ -187,7 +187,7 @@ IsReadableByITKIO()
     m_ITKReader->SetFileName( m_FileName );
 //    m_ITKReader->ReadInformation();
     return true;
-    }                                       
+    }
 }
 //-------------------------------------------------------------------------
 
@@ -197,16 +197,11 @@ QGoImageReader::
 Update()
 {
   this->start();
-  while( this->isRunning() )
-    {
-    qApp->processEvents();
-    this->wait( 50 );
-    }
 }
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-void 
+void
 QGoImageReader::
 run()
 {
@@ -224,10 +219,10 @@ run()
 //         {
 //         m_MegaCaptureReader->SetTimePoint(m_UpdateTimePoint);
 //         m_MegaCaptureReader->Update();
-//           
+//
 //         for (unsigned int i = m_MinChannel; i <= m_MaxChannel; i++)
 //           {
-//           m_Output->SetNthChannelVTKImage( i, 
+//           m_Output->SetNthChannelVTKImage( i,
 //             m_MegaCaptureReader->GetOutput(i) );
 //           }
 //         }
@@ -251,72 +246,72 @@ run()
 
 
 //-------------------------------------------------------------------------
-void 
+void
 QGoImageReader::
 Init()
 {
   bool readable = false;
   std::string extension = ExtractFileExtension();
-  
+
   // -----------------------------------
   // Is it a megacapture file?
-  if( extension.compare( ".meg" ) == 0 )
+  if( extension.compare( "meg" ) == 0 )
     {
 //     if( IsReadableByMegaCaptureReader() )
 //       {
 //       // empty LSM Readers, release memory when possible!
 //       m_LSMReaders[0]->Delete();
 //       m_LSMReaders.pop_back();
-//       
+//
 //       m_ReaderType = MEGACAPTURE;
 //       readable = true;
 //       }
     }
-    
+
   // -----------------------------------
   // Is it a lsm file?
-  if( extension.compare( ".lsm" ) == 0 )
+  if( extension.compare( "lsm" ) == 0 )
     {
     if( IsReadableByVTKLSMReader() )
-      {	
+      {
       m_MinChannel = 0;
       m_MaxChannel = m_LSMReaders[0]->GetNumberOfChannels();
-    
+
       m_MinTimePoint = 0;
       m_MaxTimePoint = m_LSMReaders[0]->GetNumberOfTimePoints();
-      
-      for( unsigned int i = m_MinChannel; 
-        i < m_MaxChannel; 
+
+      for( unsigned int i = m_MinChannel;
+        i < m_MaxChannel;
         i++ )
         {
         m_LSMReaders.push_back( vtkLSMReader::New() );
         m_LSMReaders.back()->SetFileName( m_FileName.c_str() );
         m_LSMReaders.back()->SetUpdateChannel( i );
         }
-        
+
       m_ReaderType = VTKLSM;
       readable = true;
       }
     }
-  
+
   // -----------------------------------
   // Is it a file that can be read by ITK?
   if( !readable )
-    {  
+    {
     if( IsReadableByITKIO() )
       {
       // Read Image!
       readable = true;
       }
     }
-   
+
   // -----------------------------------
   if( !readable )
     {
     // try with plugins if any
     }
 
-  // -----------------------------------    
+  // -----------------------------------
   if( !readable )
     {
     // throw an exception here!
