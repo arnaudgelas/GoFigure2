@@ -40,6 +40,8 @@
 
 #include "QGoLUTDialog.h"
 
+#include <QColorDialog>
+
 #include "vtkLookupTable.h"
 #include "vtkScalarBarActor.h"
 #include "vtkLookupTableManager.h"
@@ -130,16 +132,17 @@ void QGoLUTDialog::setupUi(QDialog* LUTDialog)
   this->LUTComboBox->setFrame(true);
 
   int k = 0;
-  this->LUTComboBox->insertItem(k++, tr("B/W"));
-  this->LUTComboBox->insertItem(k++, tr("B/W Inverse"));
-  this->LUTComboBox->insertItem(k++, tr("Spectrum"));
-  this->LUTComboBox->insertItem(k++, tr("Hot Metal"));
-  this->LUTComboBox->insertItem(k++, tr("GE Color"));
-  this->LUTComboBox->insertItem(k++, tr("Flow"));
-  this->LUTComboBox->insertItem(k++, tr("LONI"));
-  this->LUTComboBox->insertItem(k++, tr("LONI2"));
-  this->LUTComboBox->insertItem(k++, tr("Asymmetry"));
-  this->LUTComboBox->insertItem(k++, tr("P-Value"));
+  this->LUTComboBox->insertItem(k++, tr("B/W"));          // 0
+  this->LUTComboBox->insertItem(k++, tr("B/W Inverse"));  // 1
+  this->LUTComboBox->insertItem(k++, tr("Spectrum"));     // 2
+  this->LUTComboBox->insertItem(k++, tr("Hot Metal"));    // 3
+  this->LUTComboBox->insertItem(k++, tr("GE Color"));     // 4
+  this->LUTComboBox->insertItem(k++, tr("Flow"));         // 5
+  this->LUTComboBox->insertItem(k++, tr("LONI"));         // 6
+  this->LUTComboBox->insertItem(k++, tr("LONI2"));        // 7
+  this->LUTComboBox->insertItem(k++, tr("Asymmetry"));    // 8
+  this->LUTComboBox->insertItem(k++, tr("P-Value"));      // 9
+  this->LUTComboBox->insertItem(k++, tr("HSV based"));    // 10
 
   this->HorizontalLayout->addWidget(this->LUTComboBox);
 
@@ -186,8 +189,23 @@ void QGoLUTDialog::setupUi(QDialog* LUTDialog)
 void QGoLUTDialog::ChangeLookupTable(const int& idx)
 {
   this->LUT->Delete();
-  this->LUT = vtkLookupTableManager::GetLookupTable(idx);
-  this->LUTActor->SetLookupTable(this->LUT);
 
+  if( idx != 10 )
+    {
+    this->LUT = vtkLookupTableManager::GetLookupTable(idx);
+    }
+  else
+    {
+    QColor color = QColorDialog::getColor( Qt::green );
+
+    double hsv[3];
+    hsv[0] = color.hueF();
+    hsv[1] = color.saturationF();
+    hsv[2] = color.valueF();
+
+    this->LUT = vtkLookupTableManager::GetHSVBasedLookupTable( hsv );
+    }
+
+  this->LUTActor->SetLookupTable(this->LUT);
   this->QvtkWidget->GetRenderWindow()->Render();
 }

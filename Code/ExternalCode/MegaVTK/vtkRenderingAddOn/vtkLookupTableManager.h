@@ -142,6 +142,8 @@ public:
 
   static vtkLookupTable* GetLookupTable(const int&);
 
+  static vtkLookupTable* GetHSVBasedLookupTable( double iRGB[3] );
+
 protected:
   vtkLookupTableManager();
   ~vtkLookupTableManager();

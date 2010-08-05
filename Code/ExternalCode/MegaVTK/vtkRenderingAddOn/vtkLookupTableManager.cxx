@@ -413,3 +413,16 @@ vtkLookupTable* vtkLookupTableManager::GetROILookupTable()
   return lut;
 
 }
+
+vtkLookupTable*
+vtkLookupTableManager::GetHSVBasedLookupTable( double iHSV[3] )
+{
+  vtkLookupTable* lut = vtkLookupTable::New();
+  lut->SetTableRange (0, 1);
+  lut->SetHueRange (iHSV[0], iHSV[0]);
+  lut->SetSaturationRange (iHSV[1], iHSV[1]);
+  lut->SetValueRange (0., iHSV[2]);
+  lut->Build();
+
+  return lut;
+}
