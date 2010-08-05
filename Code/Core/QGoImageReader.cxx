@@ -180,15 +180,15 @@ IsReadableByITKIO()
 {
   m_ITKReader = itk::ImageIOFactory::CreateImageIO( m_FileName.c_str(),
     itk::ImageIOFactory::ReadMode);
-  if( m_ITKReader.IsNull() )
-    {
-    return false;
-    }
-  else
+  if( m_ITKReader.IsNotNull() )
     {
     m_ITKReader->SetFileName( m_FileName );
     m_ITKReader->ReadImageInformation();
     return true;
+    }
+  else
+    {
+    return false;
     }
 }
 //-------------------------------------------------------------------------
@@ -200,10 +200,10 @@ Update()
 {
   this->start();
   while( this->isRunning() )
-  {
+    {
     qApp->processEvents();
     this->wait(10);
-  }
+    }
 }
 //-------------------------------------------------------------------------
 
@@ -244,6 +244,7 @@ run()
 }
 //-------------------------------------------------------------------------
 
+//-------------------------------------------------------------------------
 void
 QGoImageReader::
 FillOutputFromLSMReaders()
@@ -256,7 +257,7 @@ FillOutputFromLSMReaders()
     m_Output->SetNthChannelVTKImage( i, t_reader->GetOutput() );
     }
 }
-
+//-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
 void
@@ -287,6 +288,9 @@ Init()
     {
     if( IsReadableByVTKLSMReader() )
       {
+      m_ReaderType = VTKLSM;
+      readable = true;
+
       m_MinChannel = 0;
       m_MaxChannel = m_LSMReaders[0]->GetNumberOfChannels();
 
@@ -302,33 +306,74 @@ Init()
         m_LSMReaders.back()->SetUpdateChannel( i );
         }
       m_Output->SetNumberOfChannels( m_MaxChannel );
-      m_ReaderType = VTKLSM;
-      readable = true;
+
       FillOutputFromLSMReaders();
       }
     }
 
   // -----------------------------------
-  // Is it a file that can be read by ITK?
+  // if it can't be read by
+  //   * one MegaCaptureReader
+  //   * one vtkLSMReader
   if( !readable )
     {
+    // Is it a file that can be read by ITK?
     if( IsReadableByITKIO() )
       {
-      // Read Image!
+      m_ReaderType = ITKIO;
       readable = true;
+
+      // Read Image!
+      /*
+      std::cout << "can be read by ITK" <<std::endl;
+      std::cout << "Image Dimension "
+          << m_ITKReader->GetNumberOfDimensions()
+          <<std::endl;
+      std::cout << "Image Component Type "
+          << m_ITKReader->GetComponentType()
+          << std::endl;
+      std::cout << "Image Component Type Name "
+          << m_ITKReader->GetComponentTypeAsString( m_ITKReader->GetComponentType() )
+          << std::endl;*/
+
+      switch( m_ITKReader->GetNumberOfDimensions() )
+        {
+        case 2:
+          {
+          FillOutputFromITKReader<2>( m_ITKReader->GetComponentType() );
+          break;
+          }
+        case 3:
+          {
+          FillOutputFromITKReader<3>( m_ITKReader->GetComponentType() );
+          break;
+          }
+        default:
+          {
+          std::cerr <<"Image dimension MUST be 2 or 3"  << std::endl;
+          return;
+          }
+        }
       }
     }
 
   // -----------------------------------
+  // if it can't be read by
+  //   * one MegaCaptureReader
+  //   * one vtkLSMReader
+  //   * one ITK Reader
   if( !readable )
     {
     // try with plugins if any
     }
 
   // -----------------------------------
+  // This file can't be read by any available readers :-/
+  // Unknown image format
   if( !readable )
     {
     // throw an exception here!
     }
 }
 //-------------------------------------------------------------------------
+

@@ -1,7 +1,7 @@
 /*=========================================================================
-  Author: $Author:$  // Author of last commit
-  Version: $Rev:$  // Revision of last commit
-  Date: $Date:$  // Date of last commit
+  Author: $Author$  // Author of last commit
+  Version: $Rev$  // Revision of last commit
+  Date: $Date$  // Date of last commit
 =========================================================================*/
 
 /*=========================================================================
@@ -38,54 +38,64 @@
 
 =========================================================================*/
 
-#ifndef __QGoImage_h
-#define __QGoImage_h
+#ifndef __QGoImageToITK_h
+#define __QGoImageToITK_h
 
-#include <vector>
+#include "QGoImage.h"
+#include "itkImage.h"
+#include "itkImageToVTKImageFilter.h"
 
-#include "itkLightObject.h"
-#include "itkObjectFactory.h"
-
-class vtkImageData;
-
-/**
-\class QGoImage
-\brief Multichannel 3D Image Representation in GoFigure2
-*/
-class QGoImage : public itk::LightObject
+template< class TImage >
+QGoImage::Pointer
+QGoImageFromITKImage( typename TImage::Pointer iImage )
 {
-public:
-  typedef QGoImage Self;
-  typedef itk::SmartPointer< Self > Pointer;
+  QGoImage::Pointer oImage = QGoImage::New();
 
-  itkNewMacro( Self );
+  typedef TImage ImageType;
+  typedef itk::ImageToVTKImageFilter<ImageType> ConnectorType;
+  typename ConnectorType::Pointer connector = ConnectorType::New();
+  connector->SetInput( iImage );
 
-  void SetNthChannelVTKImage( const unsigned int& iId, vtkImageData* iImage );
-  void SetVTKImages( const std::vector< vtkImageData* >& iImages );
+  try
+    {
+    connector->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "Error while setting QGoImage" << " " << err << std::endl;
+    return oImage;
+    }
+  vtkImageData *image = vtkImageData::New();
+  image->ShallowCopy(connector->GetOutput());
+  oImage->SetNumberOfChannels( 1 );
+  oImage->SetNthChannelVTKImage( 0, image );
 
-  vtkImageData* GetNthChannelVTKImage( const unsigned int& iId ) const;
-  std::vector< vtkImageData* > GetVTKImages() const;
+  return oImage;
+}
 
-  void SetNumberOfChannels( const size_t& iSize );
-  size_t GetNumberOfChannels() const;
+template< class TImage >
+void
+QGoImageFromITKImage( QGoImage::Pointer ioQGoImage,
+                      typename TImage::Pointer iImage )
+{
+  typedef TImage ImageType;
+  typedef itk::ImageToVTKImageFilter<ImageType> ConnectorType;
+  typename ConnectorType::Pointer connector = ConnectorType::New();
+  connector->SetInput( iImage );
 
-  unsigned int GetImageDimension() const;
-  std::vector< unsigned int > GetSize() const;
-  std::vector< double > GetSpacing() const;
-  std::vector< double > GetOrigin() const;
+  try
+    {
+    connector->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "Error while setting QGoImage" << " " << err << std::endl;
+    return;
+    }
+  vtkImageData *image = vtkImageData::New();
+  image->ShallowCopy(connector->GetOutput());
+  ioQGoImage->SetNumberOfChannels( 1 );
+  ioQGoImage->SetNthChannelVTKImage( 0, image );
+}
 
-protected:
-  QGoImage();
-  ~QGoImage();
-
-  //--- QUESTION ---
-  // std::vector< vtkImageData* > or
-  // std::map< std::string, vtkImageData* > ???
-  std::vector< vtkImageData* > m_VTKImages;
-
-private:
-  void operator = ( const Self& );
-  QGoImage( const Self& );
-};
-#endif
-
+#endif // __QGoImageToITK_h
