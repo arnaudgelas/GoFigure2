@@ -47,6 +47,9 @@
 #include <QXmlStreamReader>
 #include "vtkMySQLDatabase.h"
 
+class QString;
+class QFile;
+
 class QGoXMLImport : public QObject
 {
   Q_OBJECT
@@ -55,7 +58,8 @@ public:
   QGoXMLImport();
   ~QGoXMLImport();
 
-  void Read();
+  void Read( QString iFilename );
+
 protected:
   void ReadImagingSession();
   void ReadTraceList();
@@ -69,6 +73,7 @@ protected:
 
   vtkMySQLDatabase* m_DatabaseConnector;
   QXmlStreamReader* xmlStream;
+  QFile* file;
 
   std::map< int, int > m_ColorMap;
   std::map< int, int > m_CoordinateMap;
@@ -137,7 +142,7 @@ protected:
   }
   // -----------------------------------------------------------------------------
 private:
-
+  Q_DISABLE_COPY( QGoXMLImport );
 };
 
 #endif // QGOXMLIMPORT_H

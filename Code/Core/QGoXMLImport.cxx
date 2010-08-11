@@ -42,6 +42,8 @@
 
 #include <QXmlStreamReader>
 #include <QMessageBox>
+#include <QString>
+#include <QFile>
 
 #include "GoDBTrackRow.h"
 #include "GoDBMeshRow.h"
@@ -53,12 +55,15 @@
 
 QGoXMLImport::QGoXMLImport()
 {
+  this->xmlStream = new QXmlStreamReader;
+  this->file = new QFile( this );
 }
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 QGoXMLImport::~QGoXMLImport()
 {
+  delete this->xmlStream;
 }
 // -----------------------------------------------------------------------------
 
@@ -431,8 +436,30 @@ QGoXMLImport::ReadTrack()
 
 // -----------------------------------------------------------------------------
 void
-QGoXMLImport::Read()
+QGoXMLImport::Read( QString iFilename )
 {
+  if( ( iFilename.isEmpty() ) || ( iFilename.isNull() ) )
+    {
+    QMessageBox::critical(NULL,
+                          "QGoXMLImport",
+                          "empty filename",
+                          QMessageBox::Ok);
+    return;
+    }
+
+  this->file->setFileName( iFilename );
+
+  if (!this->file->open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+    QMessageBox::critical(NULL,
+                          "QGoXMLImport",
+                          "Couldn't open this file",
+                          QMessageBox::Ok);
+    return;
+    }
+
+  this->xmlStream->setDevice( this->file );
+
   while( !this->xmlStream->atEnd() && !this->xmlStream->hasError() )
     {
     /* Read next element.*/
