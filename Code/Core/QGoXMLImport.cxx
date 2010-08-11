@@ -55,6 +55,7 @@
 #include "GoDBChannelRow.h"
 #include "GoDBSubCellTypeRow.h"
 #include "GoDBColorRow.h"
+#include "GoDBChannelRow.h"
 
 QGoXMLImport::QGoXMLImport( std::string iServerName, std::string iLogin,
                             std::string iPassword, int iImagingSessionID )
@@ -67,14 +68,14 @@ QGoXMLImport::QGoXMLImport( std::string iServerName, std::string iLogin,
   this->m_Password = iPassword;
   this->m_ImagingSessionID = iImagingSessionID;
 
-  OpenDBConnection();
+  this->OpenDBConnection();
 }
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 QGoXMLImport::~QGoXMLImport()
 {
-  CloseDBConnection();
+  this->CloseDBConnection();
   delete this->xmlStream;
 }
 // -----------------------------------------------------------------------------
@@ -178,7 +179,7 @@ QGoXMLImport::ReadTrackList()
       if( this->xmlStream->name() == "track" )
         {
         id = this->xmlStream->attributes().value("id").toString().toInt();
-        ReadTrack();
+        this->m_TrackMap[id] = ReadTrack();
         }
       }
     }
@@ -203,7 +204,7 @@ QGoXMLImport::ReadMeshList()
       if( this->xmlStream->name() == "mesh" )
         {
         id = this->xmlStream->attributes().value("id").toString().toInt();
-        ReadMesh();
+        this->m_MeshMap[id] = ReadMesh();
         }
       }
     }
@@ -211,12 +212,14 @@ QGoXMLImport::ReadMeshList()
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-void
+int
 QGoXMLImport::ReadMesh()
 {
   QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
 
+  QString temp;
   GoDBMeshRow mesh_row;
+  int temp_id;
 
   while( ( token != QXmlStreamReader::EndElement ) ||
          ( this->xmlStream->name() != "mesh" ) )
@@ -227,42 +230,55 @@ QGoXMLImport::ReadMesh()
       {
       if( this->xmlStream->name() == "Points" )
         {
-        //mesh_row.SetField( "Points", temp.toStdString() );
+        temp = this->xmlStream->readElementText();
+        mesh_row.SetField( "Points", temp.toStdString() );
         continue;
         }
      if( this->xmlStream->name() == "CellTypeID" )
         {
-        this->xmlStream->attributes().value( "celltype" ).toString().toInt();
-
+        temp = this->xmlStream->attributes().value( "celltype" ).toString();
+        temp_id = temp.toInt();
+        mesh_row.SetField( "CellTypeID", this->m_CellTypeMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "ColorID" )
         {
-        this->xmlStream->attributes().value( "color" ).toString().toInt();
+        temp = this->xmlStream->attributes().value( "color" ).toString();
+        temp_id = temp.toInt();
+        mesh_row.SetField( "ColorID", this->m_ColorMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "CoordIDMax" )
         {
-        this->xmlStream->attributes().value( "coordinate" ).toString().toInt();
+        temp = this->xmlStream->attributes().value( "coordinate" ).toString();
+        temp_id = temp.toInt();
+        mesh_row.SetField( "CoordIDMax", this->m_CoordinateMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "CoordIDMin" )
         {
-        this->xmlStream->attributes().value( "coordinate" ).toString().toInt();
+        temp = this->xmlStream->attributes().value( "coordinate" ).toString();
+        temp_id = temp.toInt();
+        mesh_row.SetField( "CoordIDMax", this->m_CoordinateMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "SubCellularID" )
         {
-        this->xmlStream->attributes().value( "subcellular" ).toString().toInt();
+        temp = this->xmlStream->attributes().value( "subcellular" ).toString();
+        temp_id = temp.toInt();
+        mesh_row.SetField( "CoordIDMax", this->m_SubCellularTypeMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "TrackID" )
         {
-        this->xmlStream->attributes().value( "track" ).toString().toInt();
+        temp = this->xmlStream->attributes().value( "track" ).toString();
+        temp_id = temp.toInt();
+        mesh_row.SetField( "CoordIDMax", this->m_TrackMap[temp_id] );
         continue;
         }
       }
     }
+  return mesh_row.SaveInDB( this->m_DatabaseConnector );
 }
 // -----------------------------------------------------------------------------
 
@@ -289,11 +305,14 @@ QGoXMLImport::ReadIntensityList()
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-void
+int
 QGoXMLImport::ReadIntensity()
 {
   QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
   GoDBIntensityRow  row;
+
+  QString temp;
+  int temp_id;
 
   while( ( token != QXmlStreamReader::EndElement ) ||
          ( this->xmlStream->name() != "intensity" ) )
@@ -304,89 +323,44 @@ QGoXMLImport::ReadIntensity()
       {
       if( this->xmlStream->name() == "ChannelID" )
         {
+        temp = this->xmlStream->readElementText();
+        temp_id = temp.toInt();
+        row.SetField( "ChannelID", this->m_ChannelMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "MeshID" )
         {
+        temp = this->xmlStream->readElementText();
+        temp_id = temp.toInt();
+        row.SetField( "MeshID", this->m_MeshMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "Value" )
         {
-//        row.SetField( "Value", temp.toInt() );
+        temp = this->xmlStream->readElementText();
+        temp_id = temp.toInt();
+        row.SetField( "Value", temp_id );
         }
       }
 
     }
+
+  return row.SaveInDB( this->m_DatabaseConnector );
 }
-
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-/*void
-QGoXMLImport::ReadTrack()
+int
+QGoXMLImport::ReadChannel()
 {
   QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
-  GoDBTrackRow track_row;
-
-  int temp_id;
-
-  while( ( token != QXmlStreamReader::EndElement ) ||
-         ( this->xmlStream->name() != "track" ) )
-    {
-    token = this->xmlStream->readNext();
-
-    if( token == QXmlStreamReader::EntityReference )
-      {
-      if( this->xmlStream->name() == "ColorID" )
-        {
-        temp_id = this->xmlStream->attributes().value("coordinate").toString().toInt();
-        track_row.SetField( "ColorID", m_ColorMap[temp_id] );
-        continue;
-        }
-      if( this->xmlStream->name() == "CoordIDMax" )
-        {
-        temp_id = this->xmlStream->attributes().value("coordinate").toString().toInt();
-        track_row.SetField( "CoordIDMax", m_CoordinateMap[temp_id] );
-        continue;
-        }
-      if( this->xmlStream->name() == "CoordIDMin" )
-        {
-        temp_id = this->xmlStream->attributes().value("coordinate").toString().toInt();
-        track_row.SetField( "CoordIDMin", m_CoordinateMap[temp_id] );
-        continue;
-        }
-      }
-
-    if( token == QXmlStreamReader::StartElement )
-      {
-      if( this->xmlStream->name() == "LineageID" )
-        {
-        //track_row.SetField( "LineageID", )
-        continue;
-        }
-      if( this->xmlStream->name() == "TrackFamilyID" )
-        {
-        continue;
-        }
-      }
-    }
-}*/
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-void
-QGoXMLImport::ReadChannelList()
-{
-  QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
-  GoDBTrackRow channel_row;
+  GoDBChannelRow channel_row;
   QString field;
   QString value;
 
   while( ( token != QXmlStreamReader::EndElement ) ||
-         ( this->xmlStream->name() != "ChannelList" ) )
+         ( this->xmlStream->name() != "channel" ) )
     {
-    token = this->xmlStream->readNext();
-
     if( token == QXmlStreamReader::StartElement )
       {
       if( this->xmlStream->name() == "ColorID" )
@@ -401,17 +375,43 @@ QGoXMLImport::ReadChannelList()
         channel_row.SetField( field.toStdString(), value.toStdString() );
         }
       }
+    }
+  return channel_row.SaveInDB( this->m_DatabaseConnector );
+}
 
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+void
+QGoXMLImport::ReadChannelList()
+{
+  QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
+
+
+  while( ( token != QXmlStreamReader::EndElement ) ||
+         ( this->xmlStream->name() != "ChannelList" ) )
+    {
+    token = this->xmlStream->readNext();
+
+    if( token == QXmlStreamReader::StartElement )
+      {
+      if( this->xmlStream->name() == "channel" )
+        {
+        int temp_id = this->xmlStream->attributes().value("id").toString().toInt();
+        this->m_ChannelMap[temp_id] = ReadChannel();
+        }
+      }
     }
 }
 
 // -----------------------------------------------------------------------------
-void
+int
 QGoXMLImport::ReadTrack()
 {
   QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
   GoDBTrackRow track_row;
   QString temp;
+  int temp_id;
 
   while( ( token != QXmlStreamReader::EndElement ) ||
          ( this->xmlStream->name() != "track" ) )
@@ -423,33 +423,36 @@ QGoXMLImport::ReadTrack()
       {
       if( this->xmlStream->name() == "ColorID" )
         {
-        int temp_id = this->xmlStream->attributes().value("coordinate").toString().toInt();
+        temp_id = this->xmlStream->attributes().value("coordinate").toString().toInt();
         track_row.SetField( "ColorID", m_ColorMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "CoordIDMax" )
         {
-        int temp_id = this->xmlStream->attributes().value("coordinate").toString().toInt();
+        temp_id = this->xmlStream->attributes().value("coordinate").toString().toInt();
         track_row.SetField( "CoordIDMax", m_CoordinateMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "CoordIDMin" )
         {
-        int temp_id = this->xmlStream->attributes().value("coordinate").toString().toInt();
+        temp_id = this->xmlStream->attributes().value("coordinate").toString().toInt();
         track_row.SetField( "CoordIDMin", m_CoordinateMap[temp_id] );
         continue;
         }
       if( this->xmlStream->name() == "LineageID" )
         {
+        temp = this->xmlStream->readElementText();
         //track_row.SetField( "LineageID", )
         continue;
         }
       if( this->xmlStream->name() == "TrackFamilyID" )
         {
-        continue;
+        temp = this->xmlStream->readElementText();
         }
       }
     }
+
+  return track_row.SaveInDB( this->m_DatabaseConnector );
 }
 // -----------------------------------------------------------------------------
 
@@ -542,7 +545,6 @@ QGoXMLImport::Read( QString iFilename )
         if( this->xmlStream->name() == "IntensityList" )
           {
           ReadIntensityList();
-          continue;
           }
         }
 

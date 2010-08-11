@@ -65,12 +65,13 @@ protected:
   void ReadImagingSession();
   void ReadTraceList();
   void ReadTrackList();
-  void ReadTrack();
+  int ReadTrack();
   void ReadMeshList();
-  void ReadMesh();
+  int ReadMesh();
   void ReadIntensityList();
-  void ReadIntensity();
+  int ReadIntensity();
   void ReadChannelList();
+  int ReadChannel();
 
   vtkMySQLDatabase* m_DatabaseConnector;
   std::string       m_ServerName;
@@ -86,6 +87,9 @@ protected:
   std::map< int, int > m_ChannelMap;
   std::map< int, int > m_CellTypeMap;
   std::map< int, int > m_SubCellularTypeMap;
+  std::map< int, int > m_TrackMap;
+  std::map< int, int > m_MeshMap;
+  std::map< int, int > m_ContourMap;
 
   void OpenDBConnection();
   void CloseDBConnection();
