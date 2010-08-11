@@ -38,8 +38,8 @@
 
 =========================================================================*/
 
-#ifndef QGOXMLIMPORT_H
-#define QGOXMLIMPORT_H
+#ifndef __QGoXMLImport_h
+#define __QGoXMLImport_h
 
 #include <QObject>
 
@@ -50,28 +50,46 @@
 class QString;
 class QFile;
 
+/**
+\class QGoXMLImport
+\brief Import "GoFigure2Traces" xml file (*.gtx) into GoFigure2 database
+\example Core/QGoXMLImportTest.cxx
+*/
 class QGoXMLImport : public QObject
 {
   Q_OBJECT
 
 public:
+  /** \brief Constructor. */
   QGoXMLImport( std::string iServerName, std::string iLogin,
                 std::string iPassword, int iImagingSessionID );
+
+  /** \brief Destructor. */
   ~QGoXMLImport();
 
+  /** \brief Read filename
+    \param[in] iFilename */
   void Read( QString iFilename );
 
 protected:
+  /** \brief Read ImagingSession information. */
   void ReadImagingSession();
+
+  /** \brief Read TraceList*/
   void ReadTraceList();
+
   void ReadTrackList();
   int ReadTrack();
+
   void ReadMeshList();
   int ReadMesh();
+
   void ReadContourList();
   int ReadContour();
+
   void ReadIntensityList();
   int ReadIntensity();
+
   void ReadChannelList();
   int ReadChannel();
 
@@ -96,7 +114,7 @@ protected:
   void OpenDBConnection();
   void CloseDBConnection();
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   template<class TGoDBRow>
   void ReadDBEntityList( std::map< int, int >& ioMap )
   {
@@ -126,9 +144,9 @@ protected:
         }
       }
   }
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   template<class TGoDBRow>
   int ReadDBEntity()
   {
@@ -155,9 +173,10 @@ protected:
 
     return row.SaveInDB( this->m_DatabaseConnector );
   }
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+
 private:
   Q_DISABLE_COPY( QGoXMLImport );
 };
 
-#endif // QGOXMLIMPORT_H
+#endif
