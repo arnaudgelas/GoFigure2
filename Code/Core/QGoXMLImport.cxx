@@ -157,6 +157,35 @@ QGoXMLImport::ReadTraceList()
         ReadMeshList();
         continue;
         }
+      if( this->xmlStream->name() == "ContourList" )
+        {
+        ReadContourList();
+        }
+      }
+    }
+}
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+void
+QGoXMLImport::ReadContourList()
+{
+  QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
+
+  int id;
+
+  while( ( token != QXmlStreamReader::EndElement ) ||
+         ( this->xmlStream->name() != "ContourList" ) )
+    {
+    token = this->xmlStream->readNext();
+
+    if( token == QXmlStreamReader::StartElement )
+      {
+      if( this->xmlStream->name() == "contour" )
+        {
+        id = this->xmlStream->attributes().value("id").toString().toInt();
+        this->m_ContourMap[id] = ReadContour();
+        }
       }
     }
 }
@@ -208,6 +237,56 @@ QGoXMLImport::ReadMeshList()
         }
       }
     }
+}
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+int
+QGoXMLImport::ReadContour()
+{
+  QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
+
+  QString temp;
+  GoDBContourRow contour_row;
+  int temp_id;
+
+  while( ( token != QXmlStreamReader::EndElement ) ||
+         ( this->xmlStream->name() != "contour" ) )
+    {
+    token = this->xmlStream->readNext();
+
+    if( token == QXmlStreamReader::StartElement )
+      {
+      if( this->xmlStream->name() == "Points" )
+        {
+        temp = this->xmlStream->readElementText();
+        contour_row.SetField( "Points", temp.toStdString() );
+        continue;
+        }
+     if( this->xmlStream->name() == "ColorID" )
+        {
+        temp = this->xmlStream->attributes().value( "color" ).toString();
+        temp_id = temp.toInt();
+        contour_row.SetField( "ColorID", this->m_ColorMap[temp_id] );
+        continue;
+        }
+      if( this->xmlStream->name() == "CoordIDMax" )
+        {
+        temp = this->xmlStream->attributes().value( "coordinate" ).toString();
+        temp_id = temp.toInt();
+        contour_row.SetField( "CoordIDMax", this->m_CoordinateMap[temp_id] );
+        continue;
+        }
+      if( this->xmlStream->name() == "CoordIDMin" )
+        {
+        temp = this->xmlStream->attributes().value( "coordinate" ).toString();
+        temp_id = temp.toInt();
+        contour_row.SetField( "CoordIDMax", this->m_CoordinateMap[temp_id] );
+        continue;
+        }
+      }
+    }
+  return contour_row.SaveInDB( this->m_DatabaseConnector );
 }
 // -----------------------------------------------------------------------------
 

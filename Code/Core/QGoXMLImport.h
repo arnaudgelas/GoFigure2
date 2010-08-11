@@ -68,6 +68,8 @@ protected:
   int ReadTrack();
   void ReadMeshList();
   int ReadMesh();
+  void ReadContourList();
+  int ReadContour();
   void ReadIntensityList();
   int ReadIntensity();
   void ReadChannelList();
