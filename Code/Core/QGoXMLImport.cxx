@@ -40,6 +40,9 @@
 
 #include "QGoXMLImport.h"
 
+#include "SelectQueryDatabaseHelper.h"
+#include "QueryDataBaseHelper.h"
+
 #include <QXmlStreamReader>
 #include <QMessageBox>
 #include <QString>
@@ -53,17 +56,42 @@
 #include "GoDBSubCellTypeRow.h"
 #include "GoDBColorRow.h"
 
-QGoXMLImport::QGoXMLImport()
+QGoXMLImport::QGoXMLImport( std::string iServerName, std::string iLogin,
+                            std::string iPassword, int iImagingSessionID )
 {
   this->xmlStream = new QXmlStreamReader;
   this->file = new QFile( this );
+
+  this->m_ServerName = iServerName;
+  this->m_Login = iLogin;
+  this->m_Password = iPassword;
+  this->m_ImagingSessionID = iImagingSessionID;
+
+  OpenDBConnection();
 }
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 QGoXMLImport::~QGoXMLImport()
 {
+  CloseDBConnection();
   delete this->xmlStream;
+}
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+void QGoXMLImport::OpenDBConnection()
+{
+  this->m_DatabaseConnector =
+      OpenDatabaseConnection( m_ServerName, m_Login, m_Password,
+                              "gofiguredatabase");
+}
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+void QGoXMLImport::CloseDBConnection()
+{
+  CloseDatabaseConnection(m_DatabaseConnector);
 }
 // -----------------------------------------------------------------------------
 
@@ -97,7 +125,6 @@ QGoXMLImport::ReadImagingSession()
         {
         // get the name from the imaging session
         temp = this->xmlStream->readElementText();
-        continue;
         }
       }
     }
@@ -203,10 +230,7 @@ QGoXMLImport::ReadMesh()
         //mesh_row.SetField( "Points", temp.toStdString() );
         continue;
         }
-      }
-    if( token == QXmlStreamReader::EntityReference )
-      {
-      if( this->xmlStream->name() == "CellTypeID" )
+     if( this->xmlStream->name() == "CellTypeID" )
         {
         this->xmlStream->attributes().value( "celltype" ).toString().toInt();
 
@@ -276,7 +300,7 @@ QGoXMLImport::ReadIntensity()
     {
     token = this->xmlStream->readNext();
 
-    if( token == QXmlStreamReader::EntityReference )
+    if( token == QXmlStreamReader::StartElement )
       {
       if( this->xmlStream->name() == "ChannelID" )
         {
@@ -286,9 +310,6 @@ QGoXMLImport::ReadIntensity()
         {
         continue;
         }
-      }
-    if( token == QXmlStreamReader::StartElement )
-      {
       if( this->xmlStream->name() == "Value" )
         {
 //        row.SetField( "Value", temp.toInt() );
@@ -368,19 +389,19 @@ QGoXMLImport::ReadChannelList()
 
     if( token == QXmlStreamReader::StartElement )
       {
-      field = this->xmlStream->name().toString();
-      value = this->xmlStream->readElementText();
-      channel_row.SetField( field.toStdString(), value.toStdString() );
-      }
-
-    if( token == QXmlStreamReader::EntityReference )
-      {
       if( this->xmlStream->name() == "ColorID" )
         {
         int temp_id = this->xmlStream->attributes().value("color").toString().toInt();
         channel_row.SetField( "ColorID", m_ColorMap[temp_id] );
         }
+      else
+        {
+        field = this->xmlStream->name().toString();
+        value = this->xmlStream->readElementText();
+        channel_row.SetField( field.toStdString(), value.toStdString() );
+        }
       }
+
     }
 }
 
@@ -390,13 +411,15 @@ QGoXMLImport::ReadTrack()
 {
   QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
   GoDBTrackRow track_row;
+  QString temp;
 
   while( ( token != QXmlStreamReader::EndElement ) ||
          ( this->xmlStream->name() != "track" ) )
     {
     token = this->xmlStream->readNext();
+    temp = this->xmlStream->name().toString();
 
-    if( token == QXmlStreamReader::EntityReference )
+    if( token == QXmlStreamReader::StartElement )
       {
       if( this->xmlStream->name() == "ColorID" )
         {
@@ -416,10 +439,6 @@ QGoXMLImport::ReadTrack()
         track_row.SetField( "CoordIDMin", m_CoordinateMap[temp_id] );
         continue;
         }
-      }
-
-    if( token == QXmlStreamReader::StartElement )
-      {
       if( this->xmlStream->name() == "LineageID" )
         {
         //track_row.SetField( "LineageID", )
@@ -484,32 +503,33 @@ QGoXMLImport::Read( QString iFilename )
           std::cout <<"Error wrong version number" <<std::endl;
           return;
           }
+      }
         if( this->xmlStream->name() == "imagingsession" )
           {
           ReadImagingSession();
           continue;
           }
-        if( this->xmlStream->name() == "ColorList")
+        if( this->xmlStream->name() == "colorList")
           {
           ReadDBEntityList<GoDBColorRow>( m_ColorMap );
           continue;
           }
-        if( this->xmlStream->name() == "ChannelList")
+        if( this->xmlStream->name() == "channelList")
           {
           ReadDBEntityList<GoDBChannelRow>( m_ChannelMap );
           continue;
           }
-        if( this->xmlStream->name() == "CellTypeList")
+        if( this->xmlStream->name() == "celltypeList")
           {
           ReadDBEntityList<GoDBCellTypeRow>( m_CellTypeMap );
           continue;
           }
-        if( this->xmlStream->name() == "SubCellularTypeList")
+        if( this->xmlStream->name() == "subcellulartypeList")
           {
           ReadDBEntityList<GoDBSubCellTypeRow>( m_SubCellularTypeMap );
           continue;
           }
-        if( this->xmlStream->name() == "CoordinateList")
+        if( this->xmlStream->name() == "coordinateList")
           {
           ReadDBEntityList<GoDBCoordinateRow>( m_CoordinateMap );
           continue;
@@ -525,7 +545,7 @@ QGoXMLImport::Read( QString iFilename )
           continue;
           }
         }
-      }
+
     }
   if(this->xmlStream->hasError())
     {

@@ -52,7 +52,8 @@ int main( int argc, char* argv[] )
     }
 
   QString filename( argv[1] );
-  QGoXMLImport importer;
+  QGoXMLImport importer( "localhost", "gofigure",
+                         "gofigure", 1 );
   importer.Read( filename );
 
   return EXIT_SUCCESS;

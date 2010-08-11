@@ -55,7 +55,8 @@ class QGoXMLImport : public QObject
   Q_OBJECT
 
 public:
-  QGoXMLImport();
+  QGoXMLImport( std::string iServerName, std::string iLogin,
+                std::string iPassword, int iImagingSessionID );
   ~QGoXMLImport();
 
   void Read( QString iFilename );
@@ -72,6 +73,11 @@ protected:
   void ReadChannelList();
 
   vtkMySQLDatabase* m_DatabaseConnector;
+  std::string       m_ServerName;
+  std::string       m_Password;
+  std::string       m_Login;
+  int               m_ImagingSessionID;
+
   QXmlStreamReader* xmlStream;
   QFile* file;
 
@@ -80,6 +86,9 @@ protected:
   std::map< int, int > m_ChannelMap;
   std::map< int, int > m_CellTypeMap;
   std::map< int, int > m_SubCellularTypeMap;
+
+  void OpenDBConnection();
+  void CloseDBConnection();
 
   // -----------------------------------------------------------------------------
   template<class TGoDBRow>
