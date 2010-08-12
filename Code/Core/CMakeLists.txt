@@ -2,12 +2,14 @@ SET( CORE_SRC
   QGoImage.cxx
   QGoImageReader.cxx
   QGoXMLImport.cxx
+  QGoXMLExport.cxx
   )
 
 SET( CORE_HDRS
   QGoImage.h
   QGoImageReader.h
   QGoXMLImport.h
+  QGoXMLExport.h
   )
 
 QT4_WRAP_CPP( CORE_MOC ${CORE_HDRS} )

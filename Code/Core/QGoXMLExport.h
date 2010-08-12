@@ -43,9 +43,15 @@
 
 #include <QObject>
 #include "vtkMySQLDatabase.h"
+#include <QXmlStreamWriter>
+
+#include <vector>
+
+class QFile;
 
 class QGoXMLExport : public QObject
 {
+  Q_OBJECT
 public:
   QGoXMLExport( std::string iServerName, std::string iLogin,
                 std::string iPassword, int iImagingSessionID );
@@ -59,6 +65,103 @@ protected:
   std::string       m_Password;
   std::string       m_Login;
   int               m_ImagingSessionID;
+
+  QXmlStreamWriter* xmlStream;
+  QFile* file;
+
+  void WriteImagingSession();
+  void WriteColorList();
+  void WriteCoordinateList();
+
+  std::string GetOneInfoFromDBForImgSession( std::string iNameInfo );
+
+  /** \brief fill the different vectors needed for the queries
+  depending if the vectors of IDs are empty or not: get the
+  tables names, the key for the table and the tracesIDs. */
+  void GetVectorsTableNamesTracesIDsAndFields(
+    std::vector<std::string>& ioVectorTableNames,
+    std::vector<std::vector<std::string> >& ioVectorTracesIDs,
+    std::vector<std::string>& ioVectorFields,
+    bool IncludeChannelIDs = false );
+
+  //---------------------------------------------------------------------------
+  /** \brief get the info with their names for an entity from the database
+  and put them in a vector of pair of string (name of the info + value of
+  the info)*/
+  template<typename T>
+  std::vector<std::pair<std::string, std::string> >
+  GetOneEntityInfoFromDB( std::string iEntityID, T iTableRow )
+  {
+    typedef std::pair< std::string, std::string > StringPairType;
+    typedef std::vector< StringPairType > VectorOfStringPairType;
+    typedef typename VectorOfStringPairType::iterator
+        VectorOfStringPairIterator;
+
+    VectorOfStringPairType oEntityInfo;
+    iTableRow.SetValuesForSpecificID( atoi(iEntityID.c_str() ),
+                                      this->m_DatabaseConnector );
+
+    std::vector<std::string> FieldNames = iTableRow.GetVectorColumnNames();
+
+    std::vector<std::string>::iterator iter = FieldNames.begin();
+
+    std::string temp;
+    while (iter != FieldNames.end())
+      {
+      temp = iTableRow.GetMapValue(*iter);
+      oEntityInfo.push_back(StringPairType( *iter, temp ) );
+      ++iter;
+      }
+    return oEntityInfo;
+  }
+  //---------------------------------------------------------------------------
+
+  //---------------------------------------------------------------------------
+  template< class TGoDBRow >
+  void WriteTableInfoFromDB( std::vector<std::string> iListIDs )
+  {
+    typedef std::vector<std::pair<std::string, std::string> >
+        VectorOfStringPairType;
+    typedef typename VectorOfStringPairType::iterator
+        VectorOfStringPairIterator;
+
+    if( !iListIDs.empty() )
+      {
+      TGoDBRow TableRow;
+      std::string table_name = TableRow.GetTableName();
+
+      VectorOfStringPairType EntityInfo;
+      VectorOfStringPairIterator e_it;
+
+      unsigned int k = 0;
+      std::vector<std::string>::iterator iter = iListIDs.begin();
+
+      while (iter != iListIDs.end())
+        {
+        EntityInfo = this->GetOneEntityInfoFromDB(*iter, TableRow);
+
+        this->xmlStream->writeStartElement(
+            QString::fromStdString( table_name ) );
+
+        this->xmlStream->writeAttribute( "id",
+                                         QString("%d").arg(k) );
+
+        // for loop on all field from one table
+        e_it = EntityInfo.begin();
+
+        while (e_it != EntityInfo.end())
+          {
+          this->xmlStream->writeTextElement(
+              QString::fromStdString( e_it->first ),
+              QString::fromStdString( e_it->second ) );
+          ++e_it;
+          }
+        ++iter;
+        ++k;
+        }
+      }
+  }
+  //---------------------------------------------------------------------------
 
 private:
   Q_DISABLE_COPY( QGoXMLExport );
