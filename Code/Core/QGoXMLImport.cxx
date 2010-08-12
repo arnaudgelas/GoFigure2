@@ -635,6 +635,7 @@ QGoXMLImport::Read( QString iFilename )
                           this->xmlStream->errorString(),
                           QMessageBox::Ok);
     }
+  this->file->close();
   this->xmlStream->clear();
 }
 // -----------------------------------------------------------------------------

@@ -46,6 +46,7 @@
 #include <QXmlStreamWriter>
 
 #include <vector>
+#include <map>
 
 class QFile;
 
@@ -69,9 +70,68 @@ protected:
   QXmlStreamWriter* xmlStream;
   QFile* file;
 
+  std::map< std::string, std::string > m_ColorMap;
+  std::map< std::string, std::string > m_ChannelMap;
+  std::map< std::string, std::string > m_CellTypeMap;
+  std::map< std::string, std::string > m_SubCellularTypeMap;
+  std::map< std::string, std::string > m_CoordinateMap;
+
+  std::vector<std::string> m_VectorContourIDs;
+  std::vector<std::string> m_VectorMeshIDs;
+  std::vector<std::string> m_VectorTrackIDs;
+  std::vector<std::string> m_VectorLineageIDs;
+  std::vector<std::string> m_VectorChannelIDs;
+
   void WriteImagingSession();
   void WriteColorList();
+  void WriteChannelList();
+  void WriteChannel( unsigned int );
+  void WriteCellTypeList();
+  void WriteSubCellularTypeList();
   void WriteCoordinateList();
+  void WriteTraceList();
+  void WriteTrackList();
+  void WriteMeshList();
+  void WriteContourList();
+
+  void OpenDBConnection();
+  void CloseDBConnection();
+
+  /** \brief Fill the various vectors of Trace IDs (m_VectorContourIDs,
+  m_VectorMeshIDs, etc.) corresponding to the contours to be exported. */
+  void UpdateAllVectorTracesIDsToExportContours();
+
+  /** \brief Fill m_VectorContourIDs with IDs of contours belonging to the
+  current imaging session. */
+  void UpdateVectorContourIDsForExportContours();
+
+  /** \brief when exporting contours, if the contours belong to
+  meshes, the info regarding these meshes are needed also, so fill
+  m_VectorMeshIDs with these meshes IDs*/
+  void UpdateVectorMeshIDsForExportContours();
+
+  /** \brief check if for the meshes IDs found in the m_VectorMeshIDs,
+  the corresponding meshes belongs to tracks, if so these tracks IDs
+  are put in the m_VectorTrackIDs*/
+  void UpdateVectorTrackIDsToExportInfo();
+
+  /** \brief check if for the tracks IDs found in the m_VectorTrackIDs,
+  the corresponding tracks belongs to lineages, if so these lineages IDs
+  are put in the m_VectorLineageIDs*/
+  void UpdateVectorLineageIDsToExportInfo();
+
+  /** \brief when exporting meshes, we don't export the potential contours
+  associated to the meshes, so we clear m_VectorContourIDs*/
+  void UpdateVectorContourIDsForExportMeshes();
+
+  /** \brief when exporting meshes, we export only the meshes with a 3D surface
+  so we fill the m_VectorMeshIDs with the meshes with a non empty "Points"
+  column from the database*/
+  void UpdateVectorMeshIDsForExportMeshes();
+
+  /** \brief when exporting meshes, the total intensity per channel has to be
+  calculated, and the info for the channels need to be stored*/
+  void UpdateVectorChannelIDsForExportMeshes();
 
   std::string GetOneInfoFromDBForImgSession( std::string iNameInfo );
 
@@ -118,7 +178,8 @@ protected:
 
   //---------------------------------------------------------------------------
   template< class TGoDBRow >
-  void WriteTableInfoFromDB( std::vector<std::string> iListIDs )
+  void WriteTableInfoFromDB( std::vector<std::string> iListIDs,
+                             std::map< std::string, std::string > ioMap )
   {
     typedef std::vector<std::pair<std::string, std::string> >
         VectorOfStringPairType;
@@ -133,31 +194,38 @@ protected:
       VectorOfStringPairType EntityInfo;
       VectorOfStringPairIterator e_it;
 
+      QString id_temp;
       unsigned int k = 0;
       std::vector<std::string>::iterator iter = iListIDs.begin();
 
       while (iter != iListIDs.end())
         {
-        EntityInfo = this->GetOneEntityInfoFromDB(*iter, TableRow);
-
-        this->xmlStream->writeStartElement(
-            QString::fromStdString( table_name ) );
-
-        this->xmlStream->writeAttribute( "id",
-                                         QString("%d").arg(k) );
-
-        // for loop on all field from one table
-        e_it = EntityInfo.begin();
-
-        while (e_it != EntityInfo.end())
+        if( *iter != "-1" )
           {
-          this->xmlStream->writeTextElement(
-              QString::fromStdString( e_it->first ),
-              QString::fromStdString( e_it->second ) );
-          ++e_it;
+          EntityInfo = this->GetOneEntityInfoFromDB(*iter, TableRow);
+
+          id_temp = QString("%1").arg(k);
+          ioMap[ *iter ] = id_temp.toStdString();
+
+          this->xmlStream->writeStartElement(
+              QString::fromStdString( table_name ) );
+
+          this->xmlStream->writeAttribute( "id", id_temp );
+
+          // for loop on all field from one table
+          e_it = EntityInfo.begin();
+
+          while (e_it != EntityInfo.end())
+            {
+            this->xmlStream->writeTextElement(
+                QString::fromStdString( e_it->first ),
+                QString::fromStdString( e_it->second ) );
+            ++e_it;
+            }
+          this->xmlStream->writeEndElement();
+          ++k;
           }
         ++iter;
-        ++k;
         }
       }
   }

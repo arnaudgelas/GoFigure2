@@ -2,6 +2,7 @@ SET( QGoCoreExampleList
   QGoImageTest
   QGoImageReaderTest
   QGoXMLImportTest
+  QGoXMLExportTest
   )
 
 FOREACH( var ${QGoCoreExampleList} )
