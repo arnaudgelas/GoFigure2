@@ -3,6 +3,7 @@ SET( CORE_SRC
   QGoImageReader.cxx
   QGoXMLImport.cxx
   QGoXMLExport.cxx
+  QGoMegaCaptureReader.cxx
   )
 
 SET( CORE_HDRS
