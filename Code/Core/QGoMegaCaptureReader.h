@@ -9,11 +9,16 @@ class QXmlStreamReader;
 
 class QGoMegaCaptureReader : public QObject
 {
+    Q_OBJECT
 public:
   QGoMegaCaptureReader();
   ~QGoMegaCaptureReader();
 
   void Read( const QString& iFilename );
+
+signals:
+  void ChannelRead( );
+  void ColorRead( );
 
 protected:
   QXmlStreamReader* xmlStream;
@@ -40,6 +45,24 @@ protected:
   void ReadTimePointList();
   void ReadZSliceList();
   void ReadImage();
+
+  QString m_ProjectName;
+  QString m_ImagingSessionName;
+  QString m_ImagingSessionDescription;
+  QString m_ImagingSessionCreationDate;
+  QString m_FileType;
+
+  unsigned int m_SizeX;
+  unsigned int m_SizeY;
+
+  double m_XTileOverlap;
+  double m_YTileOverlap;
+  double m_ZTileOverlap;
+
+  double m_SpacingX;
+  double m_SpacingY;
+  double m_SpacingZ;
+  double m_SpacingT;
 
   unsigned int m_PCoord;
   unsigned int m_RCoord;

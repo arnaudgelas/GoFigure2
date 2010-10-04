@@ -11,6 +11,7 @@ SET( CORE_HDRS
   QGoImageReader.h
   QGoXMLImport.h
   QGoXMLExport.h
+  QGoMegaCaptureReader.h
   )
 
 QT4_WRAP_CPP( CORE_MOC ${CORE_HDRS} )

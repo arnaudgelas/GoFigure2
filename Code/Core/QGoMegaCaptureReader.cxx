@@ -46,6 +46,9 @@
 #include <QString>
 #include <QFile>
 
+#include "GoDBChannelRow.h"
+#include "GoDBColorRow.h"
+
 // -----------------------------------------------------------------------------
 QGoMegaCaptureReader::
 QGoMegaCaptureReader()
@@ -167,7 +170,7 @@ void QGoMegaCaptureReader::ReadImagingSession()
       {
       if( this->xmlStream->name() == "ProjectName" )
         {
-        temp = this->xmlStream->readElementText();
+        m_ProjectName = this->xmlStream->readElementText();
         continue;
         }
       if( this->xmlStream->name() == "MicroscopeName" )
@@ -179,19 +182,19 @@ void QGoMegaCaptureReader::ReadImagingSession()
       if( this->xmlStream->name() == "Name" )
         {
         // get the name from the imaging session
-        temp = this->xmlStream->readElementText();
+        m_ImagingSessionName = this->xmlStream->readElementText();
         continue;
         }
       if( this->xmlStream->name() == "Description" )
         {
         // get the name from the imaging session
-        temp = this->xmlStream->readElementText();
+        m_ImagingSessionDescription = this->xmlStream->readElementText();
         continue;
         }
       if( this->xmlStream->name() == "CreationDate" )
         {
         // get the name from the imaging session
-        temp = this->xmlStream->readElementText();
+        m_ImagingSessionCreationDate = this->xmlStream->readElementText();
         continue;
         }
       if( this->xmlStream->name() == "ImagesInformation" )
@@ -228,32 +231,32 @@ void QGoMegaCaptureReader::ReadImagesInformation()
       {
       if( this->xmlStream->name() == "FileType" )
         {
-        temp = this->xmlStream->readElementText();
+        m_FileType = this->xmlStream->readElementText();
         continue;
         }
       if( this->xmlStream->name() == "XImageSize" )
         {
-        temp = this->xmlStream->readElementText();
+        m_SizeX = this->xmlStream->readElementText().toUInt();
         continue;
         }
       if( this->xmlStream->name() == "YImageSize" )
         {
-        temp = this->xmlStream->readElementText();
+        m_SizeY = this->xmlStream->readElementText().toUInt();
+        continue;
+        }
+      if( this->xmlStream->name() == "ZTileOverlap" )
+        {
+        m_ZTileOverlap = this->xmlStream->readElementText().toDouble();
         continue;
         }
       if( this->xmlStream->name() == "XTileOverlap" )
         {
-        temp = this->xmlStream->readElementText();
-        continue;
-        }
-      if( this->xmlStream->name() == "XTileOverlap" )
-        {
-        temp = this->xmlStream->readElementText();
+        m_XTileOverlap = this->xmlStream->readElementText().toDouble();
         continue;
         }
       if( this->xmlStream->name() == "YTileOverlap" )
         {
-        temp = this->xmlStream->readElementText();
+        m_YTileOverlap = this->xmlStream->readElementText().toDouble();
         continue;
         }
       if( this->xmlStream->name() == "Range" )
@@ -311,42 +314,42 @@ void QGoMegaCaptureReader::ReadCoordinate()
       {
       if( this->xmlStream->name() == "PCoord" )
         {
-        temp = this->xmlStream->readElementText();
+        m_PCoord = this->xmlStream->readElementText().toUInt();
         continue;
         }
       if( this->xmlStream->name() == "CCoord" )
         {
-        temp = this->xmlStream->readElementText();
+        m_CCoord = this->xmlStream->readElementText().toUInt();
         continue;
         }
       if( this->xmlStream->name() == "RCoord" )
         {
-        temp = this->xmlStream->readElementText();
+        m_RCoord = this->xmlStream->readElementText().toUInt();
         continue;
         }
       if( this->xmlStream->name() == "ZTileCoord" )
         {
-        temp = this->xmlStream->readElementText();
+        m_ZTileCoord = this->xmlStream->readElementText().toUInt();
         continue;
         }
       if( this->xmlStream->name() == "YTileCoord" )
         {
-        temp = this->xmlStream->readElementText();
+        m_YTileCoord = this->xmlStream->readElementText().toUInt();
         continue;
         }
       if( this->xmlStream->name() == "XTileCoord" )
         {
-        temp = this->xmlStream->readElementText();
+        m_XTileCoord = this->xmlStream->readElementText().toUInt();
         continue;
         }
       if( this->xmlStream->name() == "TCoord" )
         {
-        temp = this->xmlStream->readElementText();
+        m_TCoord = this->xmlStream->readElementText().toUInt();
         continue;
         }
       if( this->xmlStream->name() == "ZCoord" )
         {
-        temp = this->xmlStream->readElementText();
+        m_ZCoord = this->xmlStream->readElementText().toUInt();
         continue;
         }
       }
@@ -469,14 +472,17 @@ void QGoMegaCaptureReader::ReadSpatialSampling( double iFactor )
       {
       if( this->xmlStream->name() == "RealPixelWidth" )
         {
+        m_SpacingX = iFactor * this->xmlStream->readElementText().toDouble();
         continue;
         }
       if( this->xmlStream->name() == "RealPixelHeight" )
         {
+        m_SpacingY = iFactor * this->xmlStream->readElementText().toDouble();
         continue;
         }
       if( this->xmlStream->name() == "RealPixelDepth" )
         {
+        m_SpacingZ = iFactor * this->xmlStream->readElementText().toDouble();
         continue;
         }
       }
@@ -498,6 +504,7 @@ void QGoMegaCaptureReader::ReadTemporalSampling( double iFactor )
       {
       if( this->xmlStream->name() == "ImagesTimeInterval" )
         {
+        m_SpacingT = iFactor * this->xmlStream->readElementText().toDouble();
         continue;
         }
       }
@@ -531,6 +538,7 @@ void QGoMegaCaptureReader::ReadChannel()
 {
   QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
   QString temp;
+  GoDBChannelRow row;
 
   while( ( !this->xmlStream->hasError() ) &&
          ( ( token != QXmlStreamReader::EndElement ) ||
@@ -540,14 +548,17 @@ void QGoMegaCaptureReader::ReadChannel()
       {
       if( this->xmlStream->name() == "ChannelNumber" )
         {
+        row.SetField( "ChannelID", this->xmlStream->readElementText().toStdString() );
         continue;
         }
       if( this->xmlStream->name() == "Name" )
         {
+        row.SetField( "Name", this->xmlStream->readElementText().toStdString() );
         continue;
         }
       if( this->xmlStream->name() == "NumberOfBits" )
         {
+        row.SetField( "NumberOfBits", this->xmlStream->readElementText().toStdString() );
         continue;
         }
       if( this->xmlStream->name() == "color" )
@@ -556,6 +567,10 @@ void QGoMegaCaptureReader::ReadChannel()
         continue;
         }
       }
+    }
+  if( !this->xmlStream->hasError() )
+    {
+    emit ChannelRead();// ( row );
     }
 }
 // -----------------------------------------------------------------------------
@@ -566,6 +581,8 @@ void QGoMegaCaptureReader::ReadColor()
   QXmlStreamReader::TokenType token = this->xmlStream->tokenType();
   QString temp;
 
+  GoDBColorRow row;
+
   while( ( !this->xmlStream->hasError() ) &&
          ( ( token != QXmlStreamReader::EndElement ) ||
            ( this->xmlStream->name() != "color" ) ) )
@@ -574,29 +591,39 @@ void QGoMegaCaptureReader::ReadColor()
       {
       if( this->xmlStream->name() == "Name" )
         {
+        row.SetField( "Name", this->xmlStream->readElementText().toStdString() );
         continue;
         }
       if( this->xmlStream->name() == "Description" )
         {
+        row.SetField( "Description", this->xmlStream->readElementText().toStdString() );
         continue;
         }
       if( this->xmlStream->name() == "Red" )
         {
+        row.SetField( "Red", this->xmlStream->readElementText().toStdString() );
         continue;
         }
       if( this->xmlStream->name() == "Green" )
         {
+        row.SetField( "Green", this->xmlStream->readElementText().toStdString() );
         continue;
         }
       if( this->xmlStream->name() == "Blue" )
         {
+        row.SetField( "Blue", this->xmlStream->readElementText().toStdString() );
         continue;
         }
       if( this->xmlStream->name() == "Alpha" )
         {
+        row.SetField( "Alpha", this->xmlStream->readElementText().toStdString() );
         continue;
         }
       }
+    }
+  if( !this->xmlStream->hasError() )
+    {
+    emit ColorRead();//( row );
     }
 }
 // -----------------------------------------------------------------------------
