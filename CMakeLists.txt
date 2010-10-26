@@ -294,6 +294,8 @@ IF( VTK_FOUND )
       ${QT_INCLUDES}
       ${GOFIGURE2_SOURCE_DIR}/Code/
       ${GOFIGURE2_BINARY_DIR}/Code/
+      ${GOFIGURE2_SOURCE_DIR}/Code/Core/
+      ${GOFIGURE2_BINARY_DIR}/Code/Core/
       ${GOFIGURE2_SOURCE_DIR}/Code/IO/
       ${GOFIGURE2_BINARY_DIR}/Code/IO/
       ${GOFIGURE2_SOURCE_DIR}/Code/Filters/
