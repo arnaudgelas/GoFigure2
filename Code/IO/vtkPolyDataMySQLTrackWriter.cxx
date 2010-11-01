@@ -32,24 +32,59 @@
 
 =========================================================================*/
 
-#ifndef __QGoLevelsetDockWidget_h
-#define __QGoLevelsetDockWidget_h
+#include "vtkPolyDataMySQLTrackWriter.h"
 
-#include <QWidget>
-#include "ui_LevelsetWidget.h"
+#include <sstream>
 
-class QGoLevelsetDockWidget:public QWidget,
-  protected Ui::LevelsetWidget
+#include "vtkObjectFactory.h"
+#include "vtkMath.h"
+#include "vtkIdList.h"
+
+#include "vtkIntArray.h"
+#include "vtkFieldData.h"
+
+#include "vtkSmartPointer.h"
+
+vtkCxxRevisionMacro(vtkPolyDataMySQLTrackWriter, "$Revision$");
+vtkStandardNewMacro(vtkPolyDataMySQLTrackWriter);
+
+//--------------------------------------------------------------------------
+vtkPolyDataMySQLTrackWriter::
+vtkPolyDataMySQLTrackWriter()
+{}
+//--------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------
+vtkPolyDataMySQLTrackWriter::
+~vtkPolyDataMySQLTrackWriter()
+{}
+//--------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------
+std::string
+vtkPolyDataMySQLTrackWriter::
+GetMySQLText(vtkPolyData *iPolyData)
 {
-  Q_OBJECT
-public:
-  explicit QGoLevelsetDockWidget(QWidget *iParent = 0);
-  ~QGoLevelsetDockWidget();
-public slots:
-signals:
-  void Curvature(int);
+  vtkIdType N = iPolyData->GetNumberOfPoints();
+  double*    pt = NULL;
+  int        time = 0;
 
-  void Iterations(int);
-};
+  std::stringstream oMyString;
 
-#endif
+  oMyString << N << " ";
+
+  vtkSmartPointer<vtkPoints> points = iPolyData->GetPoints();
+  // Might create problems because of the safedowncast
+  vtkSmartPointer<vtkIntArray> temporalArray =
+      vtkIntArray::SafeDownCast(iPolyData->GetFieldData()->GetArray("TemporalInformation"));
+
+  for ( vtkIdType i = 0; i < N; i++ )
+    {
+    pt = points->GetPoint(i);
+    time = temporalArray->GetValue(i);
+    oMyString << pt[0] << " " << pt[1] << " " << pt[2] << " " << time << " ";
+    }
+
+  return oMyString.str();
+}
+//--------------------------------------------------------------------------

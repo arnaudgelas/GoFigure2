@@ -32,26 +32,54 @@
 
 =========================================================================*/
 
-#include "QGoLevelsetDockWidget.h"
+#ifndef __vtkPolyDataMySQLTrackReader_h
+#define __vtkPolyDataMySQLTrackReader_h
 
-//---------------------------------------------------------------------------//
-QGoLevelsetDockWidget::QGoLevelsetDockWidget(QWidget *iParent):QWidget(iParent)
+#include "vtkSmartPointer.h"
+#include "vtkObject.h"
+
+#include <string>
+
+#include "QGoIOConfigure.h"
+
+class vtkPolyData;
+
+/**
+\defgroup MySQLReader MySQLReader
+\defgroup Track Track
+\defgroup Trace Trace
+*/
+
+/**
+\class vtkPolyDataMySQLTrackReader
+\brief Reads a string and convert it into a track polydata
+\ingroup MySQLReader Track Trace
+*/
+
+class QGOIO_EXPORT vtkPolyDataMySQLTrackReader:public vtkObject
 {
-  this->setupUi(this);
+public:
+  /*
+   * \brief Public constructor
+   */
+  static vtkPolyDataMySQLTrackReader * New();
 
-  // Connect signals
-  QObject::connect( this->curvature, SIGNAL( valueChanged(int) ),
-                    this, SIGNAL( Curvature(int) ) );
+  vtkTypeRevisionMacro(vtkPolyDataMySQLTrackReader, vtkObject);
 
-  QObject::connect( this->iterations, SIGNAL( valueChanged(int) ),
-                    this, SIGNAL( Iterations(int) ) );
-}
+  /*
+   * \brief Generate a "Track Polydata" from a string
+   * \param[in] iString base string to generate the polydata
+   * \return pointer to the generated "Track Polydata"
+   */
+  vtkSmartPointer<vtkPolyData> GetPolyData(const std::string & iString);
 
-//---------------------------------------------------------------------------//
+protected:
+  vtkPolyDataMySQLTrackReader();
+  ~vtkPolyDataMySQLTrackReader();
 
-//---------------------------------------------------------------------------//
-QGoLevelsetDockWidget::
-~QGoLevelsetDockWidget()
-{}
+private:
+  vtkPolyDataMySQLTrackReader(const vtkPolyDataMySQLTrackReader &);
+  void operator=(const vtkPolyDataMySQLTrackReader &);
+};
 
-//---------------------------------------------------------------------------//
+#endif

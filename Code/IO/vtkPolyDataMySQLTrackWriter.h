@@ -32,38 +32,53 @@
 
 =========================================================================*/
 
-#include "QGoContourManualSegmentationDockWidget.h"
+#ifndef __vtkPolyDataMySQLTrackWriter_h
+#define __vtkPolyDataMySQLTrackWriter_h
 
-#include <QColorDialog>
+#include <string>
+#include <sstream>
 
-#include "QGoManualSegmentationSettingsDialog.h"
+#include "vtkPolyData.h"
+#include "vtkMath.h"
+#include "vtkIdList.h"
 
-//---------------------------------------------------------------------------//
-QGoContourManualSegmentationDockWidget::QGoContourManualSegmentationDockWidget(QWidget *iParent):
-  QWidget(iParent)
+#include "QGoIOConfigure.h"
+
+/**
+\defgroup MySQLWriter MySQLWriter
+\defgroup Track Track
+\defgroup Trace Trace
+*/
+
+/**
+\class vtkPolyDataMySQLTrackWriter
+\brief Reads a string and convert it into a track polydata
+\ingroup MySQLWriter Track Trace
+*/
+
+class QGOIO_EXPORT vtkPolyDataMySQLTrackWriter:public vtkObject
 {
-  this->setupUi(this);
+public:
+  /*
+   * \brief Public constructor
+   */
+  static vtkPolyDataMySQLTrackWriter * New();
 
-  m_SettingsDialog = new QGoManualSegmentationSettingsDialog(this);
+  vtkTypeRevisionMacro(vtkPolyDataMySQLTrackWriter, vtkObject);
 
-  QObject::connect( this->ReinitializeBtn, SIGNAL( pressed() ),
-                    this, SIGNAL( ReinitializePressed() ) );
+  /*
+   * \brief Generate a string from a track polydata
+   * \param[in] iPolyData Polydata to generate the string
+   * \return string containing the track polydata information
+   */
+  std::string GetMySQLText(vtkPolyData *iPolyData);
 
-  QObject::connect( this->ValidateBtn, SIGNAL( pressed() ),
-                    this, SIGNAL( ValidatePressed() ) );
+protected:
+  vtkPolyDataMySQLTrackWriter();
+  ~vtkPolyDataMySQLTrackWriter();
 
-  QObject::connect( this->SettingsBtn, SIGNAL( pressed() ),
-                    m_SettingsDialog, SLOT ( exec() ) );
-
-  QObject::connect( m_SettingsDialog, SIGNAL( accepted() ),
-                    this, SIGNAL( UpdateContourRepresentationProperties() ) );
-}
-
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-QGoContourManualSegmentationDockWidget::
-~QGoContourManualSegmentationDockWidget()
-{}
-
-//---------------------------------------------------------------------------//
+private:
+  vtkPolyDataMySQLTrackWriter(const vtkPolyDataMySQLTrackWriter &);
+  void operator=(const vtkPolyDataMySQLTrackWriter &);
+};
+#endif

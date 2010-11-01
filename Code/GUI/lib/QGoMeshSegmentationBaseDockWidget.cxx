@@ -225,8 +225,9 @@ QGoMeshSegmentationBaseDockWidget::SetNumberOfChannels(int iNumberOfChannels)
 }
 
 //---------------------------------------------------------------------------//
-void
+/*void
 QGoMeshSegmentationBaseDockWidget::Initialize()
 {
   //m_ContourManualSegmentation->GenerateContourRepresentationProperties(true);
 }
+*/

@@ -187,7 +187,6 @@ GoDBRow::ConstMapEnd()
 //-------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------
-// std::string GoDBRow::GetMapValue( const std::string& key )
 std::string GoDBRow::GetMapValue(std::string key)
 {
   std::string oMapValue = "noValue";

@@ -125,7 +125,7 @@ public:
  in the iListColors and select the color corresponding to iColortoSelect
  if not empty, if empty, select the 1rst one
  \param[in] iListColors list of colors with their names and QColor to be displayed
- \param[in] iColortoSelect name of the color to be selected in the combobox
+ \param[in] iColorToSelect name of the color to be selected in the combobox
  */
   void SetListColors(std::list< ItemColorComboboxData > iListColors,
                      std::string iColorToSelect = "");
@@ -136,7 +136,7 @@ public:
   select the 1rst one.
   \param[in] iCellTypesData list of celltypes with their names and description
   to be displayed
-  \param[in] iCellTypetoSelect name of the celltype to be selected in the combobox
+  \param[in] iCellTypeToSelect name of the celltype to be selected in the combobox
   */
   void SetListCellTypes(NamesDescrContainerType iCellTypesData,
                         std::string iCellTypeToSelect = "");
@@ -145,9 +145,9 @@ public:
   \brief replace the list of subcelltype with the names in the iSubCellTypesData and
   select the subcelltype corresponding to iSubCellTypetoSelect if not empty, if empty,
   select the 1rst one.
-  \param[in] iSubCellTypesData list of subcelltypes with their names and description
+  \param[in] iSubCellData list of subcelltypes with their names and description
   to be displayed
-  \param[in] iSubCellTypetoSelect name of the subcelltype to be selected in the combobox
+  \param[in] iSubCellTypeToSelect name of the subcelltype to be selected in the combobox
   */
   void SetListSubCellTypes(NamesDescrContainerType iSubCellData,
                            std::string iSubCellTypeToSelect = "");
@@ -243,7 +243,7 @@ protected:
   }
 
   /**
-  \overload
+  \overload SetListItemAndSelect
   */
   template< typename T >
   void SetListItemAndSelect(T *iComboBox, std::list< ItemColorComboboxData > iItemsData,

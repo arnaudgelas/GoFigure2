@@ -1,8 +1,8 @@
 /*=========================================================================
  Authors: The GoFigure Dev. Team.
- at Megason Lab, Systems biology, Harvard Medical school, 2009-10
+ at Megason Lab, Systems biology, Harvard Medical school, 2009
 
- Copyright (c) 2009-10, President and Fellows of Harvard College.
+ Copyright (c) 2009, President and Fellows of Harvard College.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -31,38 +31,33 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
+#include <string>
+#include "vtkSmartPointer.h"
+#include "vtkPolyDataWriter.h"
+#include "vtkPolyData.h"
+#include "vtkPolyDataMySQLTrackReader.h"
+#include "vtkPolyDataMySQLTrackWriter.h"
 
-#ifndef __QGoContourManualSegmentationDockWidget_h
-#define __QGoContourManualSegmentationDockWidget_h
-
-#include <QWidget>
-#include "ui_ContourManualSegmentationWidget.h"
-
-class vtkProperty;
-class QGoManualSegmentationSettingsDialog;
-
-#include "QGoManualSegmentationSettingsDialog.h"
-#include "QGoTraceManualEditingWidget.h"
-#include "QGoIOConfigure.h"
-
-class QGOGUILIB_EXPORT QGoContourManualSegmentationDockWidget:
-  public QWidget,
-  private Ui::ContourManualSegmentationWidget
+int main(int argc, char **argv)
 {
-  Q_OBJECT
-public:
-  QGoContourManualSegmentationDockWidget(QWidget *parent = 0);
-  ~QGoContourManualSegmentationDockWidget();
+  vtkSmartPointer<vtkPolyDataMySQLTrackReader> track_reader =
+      vtkSmartPointer<vtkPolyDataMySQLTrackReader>::New();
 
-  QGoManualSegmentationSettingsDialog *m_SettingsDialog;
-signals:
-  void ReinitializePressed();
+  std::string stringFromDB = "2 1 1 1 1 2 2 2 2 ";
 
-  void ValidatePressed();
+  vtkSmartPointer<vtkPolyData> input = vtkSmartPointer<vtkPolyData>::New();
+  input->ShallowCopy(track_reader->GetPolyData(stringFromDB));
 
-  void SettingsPressed();
+  vtkSmartPointer<vtkPolyDataMySQLTrackWriter> track_writer =
+      vtkSmartPointer<vtkPolyDataMySQLTrackWriter>::New();
+  std::string output = track_writer->GetMySQLText(input);
 
-  void UpdateContourRepresentationProperties();
-};
-
-#endif
+  if(stringFromDB.compare(output) != 0)
+    {
+    return EXIT_FAILURE;
+    }
+  else
+    {
+    return EXIT_SUCCESS;
+    }
+}
